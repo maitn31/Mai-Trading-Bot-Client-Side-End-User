@@ -1,0 +1,7 @@
+.env
+*.env
+*.session
+*.txt
+*.json
+
+!/requirements.txt
