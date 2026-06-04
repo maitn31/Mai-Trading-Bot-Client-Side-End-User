@@ -3,5 +3,8 @@
 *.session
 *.txt
 *.json
+*.spec
 
 !/requirements.txt
+/dist/
+/build/
