@@ -316,14 +316,26 @@ def firebase_listener_event(event_data):
     data = event_data.get("data")
 
     if path == "/":
-        print("Initial Firebase data loaded. Ignoring old signals.")
+        if not initial_load_done:
+            print("Initial Firebase data loaded. Ignoring old signals.")
+
+            if isinstance(data, dict):
+                for signal_id in data.keys():
+                    seen_ids.add(str(signal_id))
+
+            initial_load_done = True
+            print("Ready. New signals after this point will be traded.")
+            return
+
+        print("Firebase reconnected. Checking snapshot for unseen signals.")
 
         if isinstance(data, dict):
-            for signal_id in data.keys():
-                seen_ids.add(str(signal_id))
+            for signal_id, signal_data in data.items():
+                signal_id = str(signal_id)
 
-        initial_load_done = True
-        print("Ready. New signals after this point will be traded.")
+                if signal_id not in seen_ids and isinstance(signal_data, dict):
+                    handle_signal(signal_id, signal_data)
+
         return
 
     if not initial_load_done:
@@ -356,7 +368,7 @@ def listen_to_firebase():
         url,
         headers=headers,
         stream=True,
-        timeout=(10, 3300)
+        timeout=(10, None)
     )
 
     if response.status_code in [401, 403]:
